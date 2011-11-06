@@ -1,91 +1,88 @@
 module Chronic
+  class Separator < Tag
 
-  class Separator < Tag #:nodoc:
-    def self.scan(tokens)
-      tokens.each_index do |i|
-        if t = self.scan_for_commas(tokens[i]) then tokens[i].tag(t); next end
-        if t = self.scan_for_slash_or_dash(tokens[i]) then tokens[i].tag(t); next end
-        if t = self.scan_for_at(tokens[i]) then tokens[i].tag(t); next end
-        if t = self.scan_for_in(tokens[i]) then tokens[i].tag(t); next end
-        if t = self.scan_for_on(tokens[i]) then tokens[i].tag(t); next end
+    # Scan an Array of {Token}s and apply any necessary Separator tags to
+    # each token
+    #
+    # @param [Array<Token>] tokens Array of tokens to scan
+    # @param [Hash] options Options specified in {Chronic.parse}
+    # @return [Array] list of tokens
+    def self.scan(tokens, options)
+      tokens.each do |token|
+        if t = scan_for_commas(token) then token.tag(t); next end
+        if t = scan_for_slash_or_dash(token) then token.tag(t); next end
+        if t = scan_for_at(token) then token.tag(t); next end
+        if t = scan_for_in(token) then token.tag(t); next end
+        if t = scan_for_on(token) then token.tag(t); next end
       end
-      tokens
     end
-    
+
+    # @param [Token] token
+    # @return [SeparatorComma, nil]
     def self.scan_for_commas(token)
-      scanner = {/^,$/ => :comma}
-      scanner.keys.each do |scanner_item|
-        return SeparatorComma.new(scanner[scanner_item]) if scanner_item =~ token.word
-      end
-      return nil
+      scan_for token, SeparatorComma, { /^,$/ => :comma }
     end
-    
+
+    # @param [Token] token
+    # @return [SeparatorSlashOrDash, nil]
     def self.scan_for_slash_or_dash(token)
-      scanner = {/^-$/ => :dash,
-                 /^\/$/ => :slash}
-      scanner.keys.each do |scanner_item|
-        return SeparatorSlashOrDash.new(scanner[scanner_item]) if scanner_item =~ token.word
-      end
-      return nil
+      scan_for token, SeparatorSlashOrDash,
+      {
+        /^-$/ => :dash,
+        /^\/$/ => :slash
+      }
     end
-    
+
+    # @param [Token] token
+    # @return [SeparatorAt, nil]
     def self.scan_for_at(token)
-      scanner = {/^(at|@)$/ => :at}
-      scanner.keys.each do |scanner_item|
-        return SeparatorAt.new(scanner[scanner_item]) if scanner_item =~ token.word
-      end
-      return nil
+      scan_for token, SeparatorAt, { /^(at|@)$/ => :at }
     end
-    
+
+    # @param [Token] token
+    # @return [SeparatorIn, nil]
     def self.scan_for_in(token)
-      scanner = {/^in$/ => :in}
-      scanner.keys.each do |scanner_item|
-        return SeparatorIn.new(scanner[scanner_item]) if scanner_item =~ token.word
-      end
-      return nil
+      scan_for token, SeparatorIn, { /^in$/ => :in }
     end
-    
+
+    # @param [Token] token
+    # @return [SeparatorOn, nil]
     def self.scan_for_on(token)
-      scanner = {/^on$/ => :on}
-      scanner.keys.each do |scanner_item|
-        return SeparatorOn.new(scanner[scanner_item]) if scanner_item =~ token.word
-      end
-      return nil
+      scan_for token, SeparatorOn, { /^on$/ => :on }
     end
-    
+
     def to_s
       'separator'
     end
   end
-  
+
   class SeparatorComma < Separator #:nodoc:
     def to_s
       super << '-comma'
     end
   end
-  
+
   class SeparatorSlashOrDash < Separator #:nodoc:
     def to_s
       super << '-slashordash-' << @type.to_s
     end
   end
-  
+
   class SeparatorAt < Separator #:nodoc:
     def to_s
       super << '-at'
     end
   end
-  
+
   class SeparatorIn < Separator #:nodoc:
     def to_s
       super << '-in'
     end
   end
-  
+
   class SeparatorOn < Separator #:nodoc:
     def to_s
       super << '-on'
     end
   end
-
 end

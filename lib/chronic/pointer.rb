@@ -1,27 +1,30 @@
 module Chronic
+  class Pointer < Tag
 
-  class Pointer < Tag #:nodoc:
-    def self.scan(tokens)
-      # for each token
-      tokens.each_index do |i|
-        if t = self.scan_for_all(tokens[i]) then tokens[i].tag(t) end
+    # Scan an Array of {Token}s and apply any necessary Pointer tags to
+    # each token
+    #
+    # @param [Array<Token>] tokens Array of tokens to scan
+    # @param [Hash] options Options specified in {Chronic.parse}
+    # @return [Array] list of tokens
+    def self.scan(tokens, options)
+      tokens.each do |token|
+        if t = scan_for_all(token) then token.tag(t) end
       end
-      tokens
     end
-  
+
+    # @param [Token] token
+    # @return [Pointer, nil]
     def self.scan_for_all(token)
-      scanner = {/\bpast\b/ => :past,
-                 /\bfuture\b/ => :future,
-                 /\bin\b/ => :future}
-      scanner.keys.each do |scanner_item|
-        return self.new(scanner[scanner_item]) if scanner_item =~ token.word
-      end
-      return nil
+      scan_for token, self,
+      {
+        /\bpast\b/ => :past,
+        /\b(?:future|in)\b/ => :future,
+      }
     end
-    
+
     def to_s
       'pointer-' << @type.to_s
     end
   end
-
 end

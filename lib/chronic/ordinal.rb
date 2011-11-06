@@ -1,36 +1,40 @@
 module Chronic
+  class Ordinal < Tag
 
-  class Ordinal < Tag #:nodoc:
-    def self.scan(tokens)
-      # for each token
-      tokens.each_index do |i|
-        if t = self.scan_for_ordinals(tokens[i]) then tokens[i].tag(t) end
-        if t = self.scan_for_days(tokens[i]) then tokens[i].tag(t) end
+    # Scan an Array of {Token}s and apply any necessary Ordinal tags to
+    # each token
+    #
+    # @param [Array<Token>] tokens Array of tokens to scan
+    # @param [Hash] options Options specified in {Chronic.parse}
+    # @return [Array] list of tokens
+    def self.scan(tokens, options)
+      tokens.each do |token|
+        if t = scan_for_ordinals(token) then token.tag(t) end
+        if t = scan_for_days(token) then token.tag(t) end
       end
-      tokens
     end
-  
+
+    # @param [Token] token
+    # @return [Ordinal, nil]
     def self.scan_for_ordinals(token)
-      if token.word =~ /^(\d*)(st|nd|rd|th)$/
-        return Ordinal.new($1.to_i)
-      end
-      return nil
+      Ordinal.new($1.to_i) if token.word =~ /^(\d*)(st|nd|rd|th)$/
     end
-    
+
+    # @param [Token] token
+    # @return [OrdinalDay, nil]
     def self.scan_for_days(token)
       if token.word =~ /^(\d*)(st|nd|rd|th)$/
         unless $1.to_i > 31 || $1.to_i < 1
-          return OrdinalDay.new(token.word.to_i)
+          OrdinalDay.new(token.word.to_i)
         end
       end
-      return nil
     end
-    
+
     def to_s
       'ordinal'
     end
   end
-  
+
   class OrdinalDay < Ordinal #:nodoc:
     def to_s
       super << '-day-' << @type.to_s

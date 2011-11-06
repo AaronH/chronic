@@ -1,26 +1,31 @@
-#module Chronic
+module Chronic
+  class Grabber < Tag
 
-  class Chronic::Grabber < Chronic::Tag #:nodoc:
-    def self.scan(tokens)
-      tokens.each_index do |i|
-        if t = self.scan_for_all(tokens[i]) then tokens[i].tag(t); next end
+    # Scan an Array of {Token}s and apply any necessary Grabber tags to
+    # each token
+    #
+    # @param [Array<Token>] tokens Array of tokens to scan
+    # @param [Hash] options Options specified in {Chronic.parse}
+    # @return [Array] list of tokens
+    def self.scan(tokens, options)
+      tokens.each do |token|
+        if t = scan_for_all(token) then token.tag(t); next end
       end
-      tokens
     end
-    
+
+    # @param [Token] token
+    # @return [Grabber, nil]
     def self.scan_for_all(token)
-      scanner = {/last/ => :last,
-                 /this/ => :this,
-                 /next/ => :next}
-      scanner.keys.each do |scanner_item|
-        return self.new(scanner[scanner_item]) if scanner_item =~ token.word
-      end
-      return nil
+      scan_for token, self,
+      {
+        /last/ => :last,
+        /this/ => :this,
+        /next/ => :next
+      }
     end
-    
+
     def to_s
       'grabber-' << @type.to_s
     end
   end
-
-#end
+end

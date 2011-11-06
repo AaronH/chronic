@@ -1,1 +1,6 @@
 *chronic*.gem
+pkg
+*.rbc
+rdoc
+.yardoc
+doc

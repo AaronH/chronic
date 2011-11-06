@@ -1,22 +1,26 @@
 module Chronic
-  class TimeZone < Tag #:nodoc:
-    def self.scan(tokens)
-      tokens.each_index do |i|
-        if t = self.scan_for_all(tokens[i]) then tokens[i].tag(t); next end
+  class TimeZone < Tag
+
+    # Scan an Array of {Token}s and apply any necessary TimeZone tags to
+    # each token
+    #
+    # @param [Array<Token>] tokens Array of tokens to scan
+    # @param [Hash] options Options specified in {Chronic.parse}
+    # @return [Array] list of tokens
+    def self.scan(tokens, options)
+      tokens.each do |token|
+        if t = scan_for_all(token) then token.tag(t); next end
       end
-      tokens
     end
 
+    # @param [Token] token
+    # @return [TimeZone, nil]
     def self.scan_for_all(token)
-      if RUBY_VERSION =~ /1\.9\./
-        scanner = {/[PMCE][DS]T/i => :tz}
-      else
-        scanner = {/[PMCE][DS]T/i => :tz, /(tzminus)?[01]\d[304][05]/ => :tz}
-      end
-      scanner.keys.each do |scanner_item|
-        return self.new(scanner[scanner_item]) if scanner_item =~ token.word
-      end
-      return nil
+      scan_for token, self,
+      {
+        /[PMCE][DS]T|UTC/i => :tz,
+        /(tzminus)?\d{2}:?\d{2}/ => :tz
+      }
     end
 
     def to_s
