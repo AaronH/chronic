@@ -12,7 +12,6 @@ SPEC = Gem::Specification.new do |s|
   s.require_path = "lib"
   s.autorequire = "chronic"
   s.test_file = "test/suite.rb"
-  s.has_rdoc = true
   s.extra_rdoc_files = ['README.txt']
   s.rdoc_options << '--main' << 'README.txt'
 end
